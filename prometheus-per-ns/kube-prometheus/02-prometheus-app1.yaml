@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: prometheus
+    app.kubernetes.io/instance: prom
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus
+    helm.sh/chart: kube-prometheus-4.2.2
+  name: app1-kube-prometheus-prometheus
+  namespace: app1
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: app1-kube-prometheus-prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kube-prometheus-prometheus
+subjects:
+- kind: ServiceAccount
+  name: app1-kube-prometheus-prometheus
+  namespace: app1
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: app1-prometheus
+  namespace: app1
+spec:
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: prometheus
+              app.kubernetes.io/instance: prom
+              app.kubernetes.io/name: kube-prometheus
+          namespaces:
+          - app1
+          topologyKey: kubernetes.io/hostname
+        weight: 1
+  alerting:
+    alertmanagers:
+    - name: app1-alertmanager
+      namespace: default
+      pathPrefix: /
+      port: http
+  containers:
+  - args:
+    - sidecar
+    - --prometheus.url=http://localhost:9090
+    - --grpc-address=0.0.0.0:10901
+    - --http-address=0.0.0.0:10902
+    - --tsdb.path=/prometheus/
+    image: docker.io/bitnami/thanos:0.19.0-scratch-r0
+    imagePullPolicy: IfNotPresent
+    name: thanos-sidecar
+    ports:
+    - containerPort: 10901
+      name: grpc
+      protocol: TCP
+    - containerPort: 10902
+      name: http
+      protocol: TCP
+    resources:
+      limits: {}
+      requests: {}
+    volumeMounts:
+    - mountPath: /prometheus
+      name: prometheus-app1-prometheus-db
+  enableAdminAPI: false
+  externalUrl: http://app1-prometheus.app1:9090/
+  externalLabels: 
+    source: app1
+  image: docker.io/bitnami/prometheus:2.26.0-debian-10-r8
+  listenLocal: false
+  logFormat: logfmt
+  logLevel: info
+  paused: false
+  podMetadata:
+    labels:
+      app.kubernetes.io/component: prometheus
+      app.kubernetes.io/instance: prom
+      app.kubernetes.io/name: kube-prometheus
+  podMonitorNamespaceSelector: {}
+  podMonitorSelector: {}
+  portName: web
+  probeNamespaceSelector: {}
+  probeSelector: {}
+  replicas: 1
+  retention: 10d
+  routePrefix: /
+  ruleNamespaceSelector: {}
+  ruleSelector: {}
+  securityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+  serviceAccountName: app1-kube-prometheus-prometheus
+  serviceMonitorNamespaceSelector: 
+    matchLabels:
+      name: app1
+  serviceMonitorSelector: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1-thanos-sidecar
+  namespace: app1
+spec:
+  clusterIP: None
+  ports:
+  - name: grpc
+    port: 10901
+    protocol: TCP
+    targetPort: grpc
+  selector:
+    app: prometheus
+    prometheus: app1-prometheus
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

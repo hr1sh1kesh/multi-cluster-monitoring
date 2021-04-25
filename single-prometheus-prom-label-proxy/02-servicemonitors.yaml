@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: app1-sv
+  namespace: app1
+spec:
+  endpoints:
+  - path: /metrics
+    port: http
+  namespaceSelector:
+    matchNames:
+    - app1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: example-app-svc
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: app2-sv
+  namespace: app2
+spec:
+  endpoints:
+  - path: /metrics
+    port: http
+  namespaceSelector:
+    matchNames:
+    - app2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: example-app-svc

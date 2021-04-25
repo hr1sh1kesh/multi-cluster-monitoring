@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app1
+  labels: 
+    name: app1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: example-app
+  name: prometheus-example-app
+  namespace: app1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: example-app
+  template:
+    metadata:
+      labels:
+        name: example-app
+    spec:
+      containers:
+      - name: prometheus-example-app
+        image: quay.io/brancz/prometheus-example-app:v0.3.0
+        ports:
+        - name: web
+          containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: example-app-svc
+  name: example-app-svc
+  namespace: app1
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: example-app
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app2
+  labels: 
+    name: app2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: example-app
+  name: prometheus-example-app
+  namespace: app2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: example-app
+  template:
+    metadata:
+      labels:
+        name: example-app
+    spec:
+      containers:
+      - name: prometheus-example-app
+        image: quay.io/brancz/prometheus-example-app:v0.3.0
+        ports:
+        - name: web
+          containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: example-app-svc
+  name: example-app-svc
+  namespace: app2
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    name: example-app
+  type: ClusterIP
