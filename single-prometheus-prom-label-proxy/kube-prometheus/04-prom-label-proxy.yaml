@@ -98,7 +98,7 @@ spec:
         imagePullPolicy: Always
         args:
         - "--insecure-listen-address=0.0.0.0:8080"
-        - "--upstream=http://prom-kube-prometheus-prometheus.monitoring.svc:9090/"
+        - "--upstream=http://kube-prometheus-prometheus.monitoring.svc:9090/"
         - "--label=namespace"
         ports:
         - containerPort: 8080

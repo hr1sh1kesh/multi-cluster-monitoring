@@ -30,6 +30,10 @@ nodes:
 
 - Create a namespace called `monitoring`
 
+```
+kubectl create ns monitoring
+```
+
 - Clone this repository in a directory 
 ```
 ```
@@ -38,7 +42,7 @@ nodes:
 
 ```
 $ helm repo add bitnami https://charts.bitnami.com/bitnami
-$ helm install prometheus bitnami/kube-prometheus -f prometheus-per-ns/kube-prometheus/values.yaml
+$ helm install prometheus bitnami/kube-prometheus --namespace monitoring -f prometheus-per-ns/kube-prometheus/values.yaml
 ```
 
 - Deploy the application and service monitors
@@ -53,7 +57,7 @@ This deploys a Prometheus statefulset in both the namespaces `app1` and `app2` w
 - Deploy Thanos in the monitoring namespace
 ```
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install thanos bitnami/thanos -f prometheus-per-ns/thanos/values.yaml
+helm install thanos bitnami/thanos --namespace monitoring -f prometheus-per-ns/thanos/values.yaml
 ```
 > Note: This deploys the Thanos querier component with hardcoded endpoints for the `app1` and `app2` Thanos sidecars earlier. 
 The values yaml also has endpoints for the prometheus sidecars from the app namespaces. 
